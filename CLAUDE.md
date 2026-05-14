@@ -1,100 +1,49 @@
-# Cards Traktor - Documentación del Proyecto
+# CLAUDE.md
 
-## Descripción General
-Aplicación web fullstack para generar planes de pago inteligentes para tarjetas de crédito. Los usuarios pueden ingresar múltiples tarjetas y la aplicación genera un plan óptimo siguiendo estrategias como Avalancha o Bola de Nieve.
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Tech Stack
-- **Frontend**: Next.js 15 + React 19 + Tailwind CSS
-- **Backend**: Next.js API Routes
-- **Base de datos**: PostgreSQL + Prisma ORM
-- **Autenticación**: NextAuth.js + bcryptjs
-- **Visualización**: Recharts
-
-## Estructura del Proyecto
-```
-cards-traktor/
-├── app/                    # Next.js App Router
-│   ├── api/               # Endpoints REST
-│   ├── layout.tsx         # Layout global
-│   ├── page.tsx           # Home
-│   └── globals.css
-├── lib/
-│   ├── db.ts              # Instancia de Prisma
-│   ├── auth.ts            # Funciones de autenticación
-│   └── payment-plan.ts    # Lógica de cálculo de planes
-├── components/            # Componentes React reutilizables
-├── prisma/
-│   └── schema.prisma      # Schema de BD
-└── public/                # Archivos estáticos
-```
-
-## Modelos de Datos
-
-### User
-- id, email (unique), name, password (hashed)
-- Relaciones: creditCards[], paymentPlans[]
-
-### CreditCard
-- id, userId, name, balance, interestRate, minPayment, limit
-- Relaciones: user, paymentItems[]
-
-### PaymentPlan
-- id, userId, name, strategy, totalDebt, totalInterest, monthlyPayment, estimatedMonths
-- Relaciones: user, paymentItems[]
-
-### PaymentItem
-- Detalles mes a mes: month, principalPayment, interestPayment, remainingBalance
-
-## Algoritmos de Pago
-
-### Avalancha (Avalanche)
-Pagar primero las tarjetas con mayor tasa de interés. Minimiza interés total.
-
-### Bola de Nieve (Snowball)
-Pagar primero las tarjetas con menor saldo. Genera motivación psicológica.
-
-## Flujo de Usuario Principal
-
-1. Registro/Login
-2. Dashboard: ver tarjetas guardadas
-3. Agregar/editar tarjetas de crédito
-4. Generar plan (seleccionar estrategia)
-5. Visualizar plan con gráficos
-6. Comparar múltiples planes
-7. Exportar o guardar plan
-
-## Próximos Pasos (Order)
-
-1. **Autenticación**: Rutas de registro/login con NextAuth.js
-2. **Dashboard**: Página principal del usuario con listado de tarjetas
-3. **Formulario de tarjetas**: CRUD de tarjetas de crédito
-4. **API de planes**: Endpoints para generar planes con Avalancha/Snowball
-5. **Visualización**: Componentes con Recharts para mostrar planes
-6. **Comparación**: Vista comparativa de múltiples planes
-
-## Configuración Local
+## Commands
 
 ```bash
-# Instalar dependencias
-npm install
-
-# Configurar BD en .env
-DATABASE_URL="postgresql://user:password@localhost:5432/cards_traktor"
-NEXTAUTH_SECRET="generar-con-openssl-rand-base64-32"
-
-# Ejecutar migraciones
-npx prisma db push
-
-# Desarrollo
-npm run dev
+npm run dev          # Start dev server at localhost:3000
+npm run build        # Production build
+npm run lint         # ESLint via next lint
+npm run db:push      # Apply schema changes to DB (no migration files)
+npm run db:studio    # Open Prisma Studio UI
+npx prisma generate  # Regenerate Prisma client after schema changes
 ```
 
-## Variables de Entorno
-- `DATABASE_URL`: Conexión a PostgreSQL
-- `NEXTAUTH_SECRET`: Secreto para NextAuth.js
-- `NEXTAUTH_URL`: URL base (http://localhost:3000 en dev)
+Required `.env.local` before running:
+```
+DATABASE_URL="postgresql://user:password@localhost:5432/cards_traktor"
+NEXTAUTH_SECRET="$(openssl rand -base64 32)"
+NEXTAUTH_URL="http://localhost:3000"
+```
 
-## Notas Importantes
-- NO guardar números de tarjeta (solo saldo e interés)
-- Validar tasas de interés (0-100%)
-- Los cálculos mensuales usan interés compuesto mensual
+## Architecture
+
+**Next.js 15 App Router** with `"type": "module"` in package.json. All route handlers, Server Components, and middleware coexist under `app/`.
+
+### Auth flow
+- `lib/authOptions.ts` — central `NextAuthOptions` object (Credentials provider + JWT strategy). Imported by the NextAuth route handler, by `getServerSession()` in Server Components, and by `withAuth` middleware.
+- `app/api/auth/[...nextauth]/route.ts` — NextAuth v4 App Router handler: `export { handler as GET, handler as POST }`.
+- `middleware.ts` (project root) — uses `withAuth` to guard `/dashboard/:path*` and `/api/plans/:path*`. Never include `/api/auth/:path*` in the matcher.
+- `components/providers/SessionProvider.tsx` — client boundary wrapper. `app/layout.tsx` fetches the session server-side with `getServerSession(authOptions)` and passes it as a prop to avoid client-side loading flicker.
+- `types/next-auth.d.ts` — module augmentation that adds `id` to `Session["user"]` and `JWT`.
+
+### Payment plan engine
+`lib/payment-plan.ts` exports two pure functions: `calculateAvalanchePlan` and `calculateSnowballPlan`. Both accept `CreditCardInput[]` + a `monthlyPayment` number and return a `PaymentPlanResult` with per-month `PaymentItem[]`. Interest is computed monthly (`annualRate / 100 / 12`). The simulation caps at 360 months (30 years).
+
+### Database layer
+`lib/db.ts` exports a singleton `PrismaClient` instance using the Next.js global pattern to survive hot reloads. All DB access goes through this singleton. `lib/auth.ts` exposes user CRUD (`createUser`, `getUserByEmail`, `getUserById`) and password utilities (`hashPassword`, `verifyPassword`) built on top of it.
+
+### Data model relationships
+`User → CreditCard[]` and `User → PaymentPlan[]` (both cascade-delete). `PaymentItem` is the join between `CreditCard` and `PaymentPlan`, storing the month-by-month breakdown. `CreditCard` names are unique per user (`@@unique([userId, name])`).
+
+## Key constraints
+
+- **NextAuth v4** (not v5/Auth.js). `getServerSession` imports from `"next-auth/next"`, not from `"next-auth"`.
+- `session: { strategy: "jwt" }` must be explicit in `authOptions` — no database adapter is used.
+- `app/` is the only source of pages and API routes — no `pages/` directory.
+- The app stores only balance and interest rate — never card numbers or full account details.
+- `interestRate` is stored as annual percentage (e.g., `24.5` for 24.5% APR).
