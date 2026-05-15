@@ -74,12 +74,24 @@ export default async function DashboardPage() {
           </div>
         </Link>
 
-        <div className="bg-gray-50 rounded-xl border-2 border-dashed border-gray-200 p-6 flex items-center justify-center">
-          <div className="text-center">
-            <p className="font-medium text-gray-400">Generar plan de pago</p>
-            <p className="text-xs text-gray-400 mt-1">Próximamente</p>
+        <Link
+          href="/dashboard/plans/new"
+          className="bg-white rounded-xl shadow p-6 hover:shadow-md transition-shadow group"
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="font-semibold text-gray-900 group-hover:text-green-600 transition-colors">
+                Generar plan de pago
+              </h3>
+              <p className="text-sm text-gray-500 mt-1">
+                {plans.length === 0
+                  ? "Crea tu primer plan"
+                  : `${plans.length} plan${plans.length !== 1 ? "es" : ""} guardado${plans.length !== 1 ? "s" : ""}`}
+              </p>
+            </div>
+            <span className="text-2xl text-gray-300 group-hover:text-green-300 transition-colors">→</span>
           </div>
-        </div>
+        </Link>
       </div>
     </div>
   )

@@ -52,13 +52,14 @@ model PaymentPlan {
   userId        String
   user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  name          String          // Ej: "Plan Avalancha - Mayo 2026"
-  strategy      String          // "avalanche" | "snowball" | "custom"
-  totalDebt     Float           // Total de deuda
-  totalInterest Float           // Interés total estimado
-  monthlyPayment Float          // Cantidad a pagar mensualmente
-  estimatedMonths Int           // Meses para saldar
-  savingsVsMinPayment Float      // Ahorro vs pago mínimo
+  name                String
+  strategy            String          // "avalanche" | "snowball"
+  totalDebt           Float
+  totalTransferFees   Float           @default(0)
+  totalInterest       Float
+  monthlyPayment      Float
+  estimatedMonths     Int
+  savingsVsMinPayment Float
 
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
