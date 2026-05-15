@@ -72,28 +72,28 @@ export default function CardForm({ initial, onSubmit, onCancel, submitLabel }: P
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-5">
+    <form onSubmit={handleSubmit} className="space-y-6">
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
         <div className="sm:col-span-2">
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Nombre de la tarjeta <span className="text-red-500">*</span>
+          <label className="block text-sm font-bold text-gray-700 mb-2">
+            💳 Nombre de la tarjeta <span className="text-red-500">*</span>
           </label>
           <input
             type="text"
             value={form.name}
             onChange={e => set("name", e.target.value)}
             placeholder='Ej: "Visa BofA", "Chase Sapphire"'
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full border-2 border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-bold text-gray-700 mb-2">
             Saldo actual <span className="text-red-500">*</span>
           </label>
           <div className="relative">
-            <span className="absolute left-3 top-2 text-gray-400 text-sm">$</span>
+            <span className="absolute left-4 top-2.5 text-gray-600 font-semibold">$</span>
             <input
               type="number"
               min="0"
@@ -101,14 +101,14 @@ export default function CardForm({ initial, onSubmit, onCancel, submitLabel }: P
               value={form.balance}
               onChange={e => set("balance", e.target.value)}
               placeholder="0.00"
-              className="w-full border border-gray-300 rounded-lg pl-7 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border-2 border-gray-200 rounded-lg pl-9 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
             />
           </div>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Tasa de interés anual (APR) <span className="text-red-500">*</span>
+          <label className="block text-sm font-bold text-gray-700 mb-2">
+            Tasa APR anual <span className="text-red-500">*</span>
           </label>
           <div className="relative">
             <input
@@ -119,18 +119,18 @@ export default function CardForm({ initial, onSubmit, onCancel, submitLabel }: P
               value={form.interestRate}
               onChange={e => set("interestRate", e.target.value)}
               placeholder="24.99"
-              className="w-full border border-gray-300 rounded-lg px-3 pr-8 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border-2 border-gray-200 rounded-lg px-4 pr-10 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
             />
-            <span className="absolute right-3 top-2 text-gray-400 text-sm">%</span>
+            <span className="absolute right-4 top-2.5 text-gray-600 font-semibold">%</span>
           </div>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-bold text-gray-700 mb-2">
             Pago mínimo mensual
           </label>
           <div className="relative">
-            <span className="absolute left-3 top-2 text-gray-400 text-sm">$</span>
+            <span className="absolute left-4 top-2.5 text-gray-600 font-semibold">$</span>
             <input
               type="number"
               min="0"
@@ -138,17 +138,17 @@ export default function CardForm({ initial, onSubmit, onCancel, submitLabel }: P
               value={form.minPayment}
               onChange={e => set("minPayment", e.target.value)}
               placeholder="25.00"
-              className="w-full border border-gray-300 rounded-lg pl-7 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border-2 border-gray-200 rounded-lg pl-9 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
             />
           </div>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-bold text-gray-700 mb-2">
             Límite de crédito
           </label>
           <div className="relative">
-            <span className="absolute left-3 top-2 text-gray-400 text-sm">$</span>
+            <span className="absolute left-4 top-2.5 text-gray-600 font-semibold">$</span>
             <input
               type="number"
               min="0"
@@ -156,35 +156,35 @@ export default function CardForm({ initial, onSubmit, onCancel, submitLabel }: P
               value={form.limit}
               onChange={e => set("limit", e.target.value)}
               placeholder="5,000.00"
-              className="w-full border border-gray-300 rounded-lg pl-7 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border-2 border-gray-200 rounded-lg pl-9 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
             />
           </div>
         </div>
       </div>
 
       {/* Oferta promocional */}
-      <div className="border border-gray-200 rounded-xl p-4">
+      <div className="border-2 border-amber-200 bg-amber-50 rounded-xl p-5">
         <label className="flex items-center gap-3 cursor-pointer">
           <input
             type="checkbox"
             checked={form.hasPromoOffer}
             onChange={e => set("hasPromoOffer", e.target.checked)}
-            className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+            className="w-5 h-5 text-amber-600 rounded focus:ring-amber-500"
           />
           <div>
-            <span className="text-sm font-medium text-gray-800">
-              Tiene oferta de transferencia de balance
+            <span className="text-sm font-bold text-gray-800">
+              ⭐ Oferta de transferencia de balance
             </span>
-            <p className="text-xs text-gray-500 mt-0.5">
+            <p className="text-xs text-gray-600 mt-0.5">
               APR especial por tiempo limitado (ej: 0% por 15 meses)
             </p>
           </div>
         </label>
 
         {form.hasPromoOffer && (
-          <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 border-t border-gray-100">
+          <div className="mt-5 grid grid-cols-1 sm:grid-cols-3 gap-4 pt-5 border-t-2 border-amber-200">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-bold text-gray-700 mb-2">
                 Costo de transferencia
               </label>
               <div className="relative">
@@ -196,15 +196,15 @@ export default function CardForm({ initial, onSubmit, onCancel, submitLabel }: P
                   value={form.promoTransferFee}
                   onChange={e => set("promoTransferFee", e.target.value)}
                   placeholder="3.5"
-                  className="w-full border border-gray-300 rounded-lg px-3 pr-8 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full border-2 border-gray-200 rounded-lg px-4 pr-10 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 />
-                <span className="absolute right-3 top-2 text-gray-400 text-sm">%</span>
+                <span className="absolute right-4 top-2.5 text-gray-600 font-semibold">%</span>
               </div>
-              <p className="text-xs text-gray-400 mt-1">% del saldo a transferir</p>
+              <p className="text-xs text-gray-600 mt-2">% del saldo a transferir</p>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-bold text-gray-700 mb-2">
                 APR de la oferta <span className="text-red-500">*</span>
               </label>
               <div className="relative">
@@ -216,16 +216,16 @@ export default function CardForm({ initial, onSubmit, onCancel, submitLabel }: P
                   value={form.promoRate}
                   onChange={e => set("promoRate", e.target.value)}
                   placeholder="0"
-                  className="w-full border border-gray-300 rounded-lg px-3 pr-8 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full border-2 border-gray-200 rounded-lg px-4 pr-10 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 />
-                <span className="absolute right-3 top-2 text-gray-400 text-sm">%</span>
+                <span className="absolute right-4 top-2.5 text-gray-600 font-semibold">%</span>
               </div>
-              <p className="text-xs text-gray-400 mt-1">Usualmente 0%</p>
+              <p className="text-xs text-gray-600 mt-2">Usualmente 0%</p>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Duración de la oferta <span className="text-red-500">*</span>
+              <label className="block text-sm font-bold text-gray-700 mb-2">
+                Duración <span className="text-red-500">*</span>
               </label>
               <div className="relative">
                 <input
@@ -236,20 +236,20 @@ export default function CardForm({ initial, onSubmit, onCancel, submitLabel }: P
                   value={form.promoMonths}
                   onChange={e => set("promoMonths", e.target.value)}
                   placeholder="15"
-                  className="w-full border border-gray-300 rounded-lg px-3 pr-14 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full border-2 border-gray-200 rounded-lg px-4 pr-16 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 />
-                <span className="absolute right-3 top-2 text-gray-400 text-sm">meses</span>
+                <span className="absolute right-4 top-2.5 text-gray-600 font-semibold">meses</span>
               </div>
             </div>
 
             {/* Resumen de la oferta */}
             {form.balance && form.promoTransferFee && (
-              <div className="sm:col-span-3 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 text-xs text-amber-800">
-                Costo de transferencia estimado:{" "}
-                <strong>
+              <div className="sm:col-span-3 bg-white border-2 border-amber-200 rounded-lg px-4 py-3 text-sm font-medium text-amber-900">
+                💰 Costo de transferencia estimado:{" "}
+                <strong className="text-lg">
                   ${(Number(form.balance) * Number(form.promoTransferFee) / 100).toFixed(2)}
-                </strong>{" "}
-                — se suma al saldo inicial
+                </strong>
+                <p className="text-xs text-amber-700 mt-1">— se suma al saldo inicial</p>
               </div>
             )}
           </div>
@@ -257,25 +257,25 @@ export default function CardForm({ initial, onSubmit, onCancel, submitLabel }: P
       </div>
 
       {error && (
-        <p className="text-red-600 text-sm bg-red-50 border border-red-200 rounded-lg px-3 py-2">
-          {error}
-        </p>
+        <div className="text-red-700 text-sm bg-red-50 border-2 border-red-200 rounded-lg px-4 py-3 font-medium">
+          ⚠️ {error}
+        </div>
       )}
 
-      <div className="flex gap-3 justify-end pt-2">
+      <div className="flex gap-3 justify-end pt-4 border-t border-gray-200">
         <button
           type="button"
           onClick={onCancel}
-          className="px-4 py-2 text-sm text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+          className="px-6 py-2.5 text-sm text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors font-medium"
         >
           Cancelar
         </button>
         <button
           type="submit"
           disabled={loading}
-          className="px-4 py-2 text-sm text-white bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 rounded-lg transition-colors font-medium"
+          className="px-6 py-2.5 text-sm text-white bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 rounded-lg transition-colors font-bold shadow-md hover:shadow-lg disabled:opacity-50"
         >
-          {loading ? "Guardando..." : submitLabel}
+          {loading ? "⏳ Guardando..." : `✓ ${submitLabel}`}
         </button>
       </div>
     </form>

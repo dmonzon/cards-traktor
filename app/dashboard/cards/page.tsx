@@ -65,21 +65,21 @@ export default function CardsPage() {
   const totalDebt = cards.reduce((sum, c) => sum + c.balance, 0)
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-8">
+      <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Mis tarjetas</h2>
+          <h1 className="text-3xl font-bold text-gray-900">Mis tarjetas</h1>
           {cards.length > 0 && (
-            <p className="text-sm text-gray-500 mt-1">
+            <p className="text-gray-600 mt-2">
               {cards.length} tarjeta{cards.length !== 1 ? "s" : ""} · Deuda total:{" "}
-              <strong className="text-red-600">${totalDebt.toLocaleString("en-US", { minimumFractionDigits: 2 })}</strong>
+              <strong className="text-red-600 text-lg">${totalDebt.toLocaleString("en-US", { minimumFractionDigits: 2 })}</strong>
             </p>
           )}
         </div>
         {!showForm && !editingCard && (
           <button
             onClick={() => setShowForm(true)}
-            className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+            className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-2 rounded-lg transition-colors shadow-md hover:shadow-lg"
           >
             + Agregar tarjeta
           </button>
@@ -87,8 +87,8 @@ export default function CardsPage() {
       </div>
 
       {showForm && (
-        <div className="bg-white rounded-xl shadow p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Nueva tarjeta</h3>
+        <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-200">
+          <h3 className="text-2xl font-bold text-gray-900 mb-6">Nueva tarjeta</h3>
           <CardForm
             submitLabel="Agregar tarjeta"
             onCancel={() => setShowForm(false)}
@@ -98,84 +98,93 @@ export default function CardsPage() {
       )}
 
       {loading ? (
-        <div className="text-center py-12 text-gray-400">Cargando...</div>
+        <div className="text-center py-16">
+          <div className="inline-block animate-spin text-4xl">⏳</div>
+          <p className="text-gray-500 mt-4">Cargando tarjetas...</p>
+        </div>
       ) : cards.length === 0 && !showForm ? (
-        <div className="bg-white rounded-xl shadow p-12 text-center">
-          <p className="text-gray-500 mb-4">Aún no tienes tarjetas registradas</p>
+        <div className="bg-white rounded-xl shadow-md p-12 text-center border border-gray-100">
+          <div className="text-6xl mb-4">💳</div>
+          <p className="text-gray-600 mb-6 text-lg">Aún no tienes tarjetas registradas</p>
           <button
             onClick={() => setShowForm(true)}
-            className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-5 py-2.5 rounded-lg transition-colors"
+            className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-3 rounded-lg transition-colors shadow-md hover:shadow-lg"
           >
             Agregar tu primera tarjeta
           </button>
         </div>
       ) : (
-        <div className="grid gap-4">
+        <div className="grid gap-6">
           {cards.map(card => (
-            <div key={card.id} className="bg-white rounded-xl shadow p-5">
+            <div key={card.id} className="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow border border-gray-100 overflow-hidden">
               {editingCard?.id === card.id ? (
-                <>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Editar tarjeta</h3>
+                <div className="p-8">
+                  <h3 className="text-2xl font-bold text-gray-900 mb-6">Editar tarjeta</h3>
                   <CardForm
                     submitLabel="Guardar cambios"
                     initial={cardToFormData(card)}
                     onCancel={() => setEditingCard(null)}
                     onSubmit={async (data) => handleUpdate(card.id, formDataToPayload(data))}
                   />
-                </>
+                </div>
               ) : (
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1 grid grid-cols-2 sm:grid-cols-4 gap-x-6 gap-y-2">
-                    <div className="col-span-2 sm:col-span-4">
-                      <span className="font-semibold text-gray-900 text-lg">{card.name}</span>
-                      {card.hasPromoOffer && (
-                        <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-800">
-                          Oferta promo
-                        </span>
-                      )}
+                <div className="p-6">
+                  <div className="flex items-start justify-between gap-4 mb-6">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-2">
+                        <span className="text-2xl">💳</span>
+                        <span className="font-bold text-gray-900 text-xl">{card.name}</span>
+                        {card.hasPromoOffer && (
+                          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800">
+                            ⭐ Oferta promo
+                          </span>
+                        )}
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-xs text-gray-400">Saldo</p>
-                      <p className="font-semibold text-red-600">
+                    <div className="flex gap-2 shrink-0">
+                      <button
+                        onClick={() => setEditingCard(card)}
+                        className="text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg transition-colors font-medium"
+                      >
+                        ✏️ Editar
+                      </button>
+                      <button
+                        onClick={() => handleDelete(card.id)}
+                        disabled={deletingId === card.id}
+                        className="text-sm bg-red-100 hover:bg-red-200 text-red-700 px-4 py-2 rounded-lg transition-colors font-medium disabled:opacity-50"
+                      >
+                        {deletingId === card.id ? "..." : "🗑️ Eliminar"}
+                      </button>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
+                    <div className="bg-red-50 rounded-lg p-4">
+                      <p className="text-xs font-medium text-gray-600">Saldo</p>
+                      <p className="text-2xl font-bold text-red-600 mt-1">
                         ${card.balance.toLocaleString("en-US", { minimumFractionDigits: 2 })}
                       </p>
                     </div>
-                    <div>
-                      <p className="text-xs text-gray-400">APR regular</p>
-                      <p className="font-medium text-gray-800">{card.interestRate}%</p>
+                    <div className="bg-blue-50 rounded-lg p-4">
+                      <p className="text-xs font-medium text-gray-600">APR regular</p>
+                      <p className="text-2xl font-bold text-blue-600 mt-1">{card.interestRate}%</p>
                     </div>
                     {card.minPayment && (
-                      <div>
-                        <p className="text-xs text-gray-400">Pago mínimo</p>
-                        <p className="font-medium text-gray-800">
+                      <div className="bg-gray-50 rounded-lg p-4">
+                        <p className="text-xs font-medium text-gray-600">Pago mínimo</p>
+                        <p className="text-2xl font-bold text-gray-700 mt-1">
                           ${card.minPayment.toLocaleString("en-US", { minimumFractionDigits: 2 })}
                         </p>
                       </div>
                     )}
                     {card.hasPromoOffer && card.promoMonths && (
-                      <div>
-                        <p className="text-xs text-gray-400">Oferta</p>
-                        <p className="font-medium text-amber-700">
+                      <div className="bg-amber-50 rounded-lg p-4">
+                        <p className="text-xs font-medium text-gray-600">Oferta</p>
+                        <p className="text-sm font-bold text-amber-700 mt-1">
                           {card.promoRate}% por {card.promoMonths} meses
                           {card.promoTransferFee ? ` (fee ${card.promoTransferFee}%)` : ""}
                         </p>
                       </div>
                     )}
-                  </div>
-                  <div className="flex gap-2 shrink-0">
-                    <button
-                      onClick={() => setEditingCard(card)}
-                      className="text-sm text-gray-500 hover:text-gray-700 px-3 py-1.5 rounded-lg hover:bg-gray-100 transition-colors"
-                    >
-                      Editar
-                    </button>
-                    <button
-                      onClick={() => handleDelete(card.id)}
-                      disabled={deletingId === card.id}
-                      className="text-sm text-red-500 hover:text-red-700 px-3 py-1.5 rounded-lg hover:bg-red-50 transition-colors"
-                    >
-                      {deletingId === card.id ? "..." : "Eliminar"}
-                    </button>
                   </div>
                 </div>
               )}

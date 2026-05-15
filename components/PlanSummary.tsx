@@ -15,8 +15,8 @@ interface Props {
 }
 
 const STRATEGY_LABELS = {
-  avalanche: { name: "Avalancha", color: "blue", description: "Paga primero la tarjeta con mayor interés. Ahorra más dinero en total." },
-  snowball: { name: "Bola de Nieve", color: "green", description: "Paga primero la tarjeta con menor saldo. Genera motivación al eliminar deudas rápido." },
+  avalanche: { name: "Avalancha", icon: "⚡", color: "blue", description: "Paga primero la tarjeta con mayor interés. Ahorra más dinero en total." },
+  snowball: { name: "Bola de Nieve", icon: "❄️", color: "green", description: "Paga primero la tarjeta con menor saldo. Genera motivación al eliminar deudas rápido." },
 }
 
 const usd = (n: number) =>
@@ -34,56 +34,57 @@ export default function PlanSummary({ result, onSave, saving }: Props) {
   const isBlue = meta.color === "blue"
 
   return (
-    <div className={`border-2 rounded-xl p-5 ${isBlue ? "border-blue-200 bg-blue-50" : "border-green-200 bg-green-50"}`}>
-      <div className="flex items-start justify-between gap-2 mb-3">
-        <div>
-          <span className={`inline-block text-xs font-semibold px-2 py-0.5 rounded-full mb-1 ${isBlue ? "bg-blue-100 text-blue-700" : "bg-green-100 text-green-700"}`}>
-            {meta.name}
-          </span>
-          <p className="text-xs text-gray-500">{meta.description}</p>
+    <div className={`rounded-xl shadow-md border-2 overflow-hidden hover:shadow-lg transition-shadow ${isBlue ? "border-blue-200 bg-blue-50" : "border-green-200 bg-green-50"}`}>
+      <div className={`${isBlue ? "bg-blue-600" : "bg-green-600"} text-white p-6 mb-4`}>
+        <div className="flex items-center gap-3 mb-2">
+          <span className="text-4xl">{meta.icon}</span>
+          <h3 className="text-2xl font-bold">{meta.name}</h3>
         </div>
+        <p className="text-sm opacity-90">{meta.description}</p>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 mb-4">
-        <div className="bg-white rounded-lg p-3">
-          <p className="text-xs text-gray-400">Tiempo para saldar</p>
-          <p className={`font-bold text-lg ${isBlue ? "text-blue-700" : "text-green-700"}`}>
-            {years(result.estimatedMonths)}
-          </p>
-        </div>
-        <div className="bg-white rounded-lg p-3">
-          <p className="text-xs text-gray-400">Interés total</p>
-          <p className="font-bold text-lg text-red-600">{usd(result.totalInterest)}</p>
-        </div>
-        {result.totalTransferFees > 0 && (
-          <div className="bg-white rounded-lg p-3">
-            <p className="text-xs text-gray-400">Fee de transferencia</p>
-            <p className="font-bold text-amber-600">{usd(result.totalTransferFees)}</p>
+      <div className="px-6 pb-6">
+        <div className="grid grid-cols-2 gap-3 mb-6">
+          <div className="bg-white rounded-lg p-4 border border-gray-100">
+            <p className="text-xs font-medium text-gray-600 mb-1">⏱️ Tiempo para saldar</p>
+            <p className={`font-bold text-lg ${isBlue ? "text-blue-700" : "text-green-700"}`}>
+              {years(result.estimatedMonths)}
+            </p>
           </div>
-        )}
-        <div className="bg-white rounded-lg p-3">
-          <p className="text-xs text-gray-400">Ahorro vs pago mínimo</p>
-          <p className="font-bold text-lg text-green-600">{usd(result.savingsVsMinPayment)}</p>
+          <div className="bg-white rounded-lg p-4 border border-gray-100">
+            <p className="text-xs font-medium text-gray-600 mb-1">📊 Interés total</p>
+            <p className="font-bold text-lg text-red-600">{usd(result.totalInterest)}</p>
+          </div>
+          {result.totalTransferFees > 0 && (
+            <div className="bg-white rounded-lg p-4 border border-gray-100">
+              <p className="text-xs font-medium text-gray-600 mb-1">💸 Fee transferencia</p>
+              <p className="font-bold text-amber-600">{usd(result.totalTransferFees)}</p>
+            </div>
+          )}
+          <div className="bg-white rounded-lg p-4 border border-gray-100">
+            <p className="text-xs font-medium text-gray-600 mb-1">🎯 Ahorro vs mínimo</p>
+            <p className="font-bold text-lg text-green-600">{usd(result.savingsVsMinPayment)}</p>
+          </div>
+          <div className="bg-white rounded-lg p-4 col-span-2 border border-gray-100">
+            <p className="text-xs font-medium text-gray-600 mb-1">💰 Costo total (deuda + interés{result.totalTransferFees > 0 ? " + fees" : ""})</p>
+            <p className="font-bold text-lg text-gray-900">
+              {usd(result.totalDebt + result.totalInterest + result.totalTransferFees)}
+            </p>
+          </div>
         </div>
-        <div className="bg-white rounded-lg p-3 col-span-2">
-          <p className="text-xs text-gray-400">Costo total (deuda + interés{result.totalTransferFees > 0 ? " + fees" : ""})</p>
-          <p className="font-bold text-gray-800">
-            {usd(result.totalDebt + result.totalInterest + result.totalTransferFees)}
-          </p>
-        </div>
-      </div>
 
-      <button
-        onClick={onSave}
-        disabled={saving}
-        className={`w-full py-2 rounded-lg font-medium text-sm text-white transition-colors
-          ${isBlue
-            ? "bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300"
-            : "bg-green-600 hover:bg-green-700 disabled:bg-green-300"
-          }`}
-      >
-        {saving ? "Guardando..." : "Guardar este plan"}
-      </button>
+        <button
+          onClick={onSave}
+          disabled={saving}
+          className={`w-full py-3 rounded-lg font-bold text-white transition-colors shadow-md hover:shadow-lg disabled:opacity-50
+            ${isBlue
+              ? "bg-blue-600 hover:bg-blue-700"
+              : "bg-green-600 hover:bg-green-700"
+            }`}
+        >
+          {saving ? "⏳ Guardando..." : `💾 Guardar ${meta.name}`}
+        </button>
+      </div>
     </div>
   )
 }

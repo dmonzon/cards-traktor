@@ -98,6 +98,21 @@ function runSimulation(cardsData: CardState[], monthlyPayment: number, strategy:
     month++
     let remainingPayment = monthlyPayment
 
+    // Re-sort every month based on current strategy
+    if (strategy === 'avalanche') {
+      cardsData.sort((a, b) => {
+        const rateA = a.remainingBalance > 0.01 ? (a.remainingPromoMonths > 0 ? a.promoMonthlyRate : a.monthlyRate) : -1
+        const rateB = b.remainingBalance > 0.01 ? (b.remainingPromoMonths > 0 ? b.promoMonthlyRate : b.monthlyRate) : -1
+        return rateB - rateA
+      })
+    } else {
+      cardsData.sort((a, b) => {
+        const balA = a.remainingBalance > 0.01 ? a.remainingBalance : Infinity
+        const balB = b.remainingBalance > 0.01 ? b.remainingBalance : Infinity
+        return balA - balB
+      })
+    }
+
     for (const card of cardsData) {
       if (card.remainingBalance <= 0.01) continue
       const { payment, usedPayment } = simulateMonth(card, remainingPayment)
@@ -118,18 +133,6 @@ function calculatePlan(
   strategy: 'avalanche' | 'snowball'
 ): PaymentPlanResult {
   const { cardsData, totalTransferFees, totalDebt } = initCards(cards)
-
-  if (strategy === 'avalanche') {
-    // Pay highest effective rate first (promo rate during offer, then regular)
-    cardsData.sort((a, b) => {
-      const rateA = a.remainingPromoMonths > 0 ? a.promoMonthlyRate : a.monthlyRate
-      const rateB = b.remainingPromoMonths > 0 ? b.promoMonthlyRate : b.monthlyRate
-      return rateB - rateA
-    })
-  } else {
-    // Pay lowest balance first
-    cardsData.sort((a, b) => a.remainingBalance - b.remainingBalance)
-  }
 
   const { payments, totalInterest, months } = runSimulation(cardsData, monthlyPayment, strategy)
   const minPaymentTotal = cards.reduce((sum, c) => sum + (c.minPayment || 25), 0) * months
