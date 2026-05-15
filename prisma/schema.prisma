@@ -28,9 +28,15 @@ model CreditCard {
 
   name          String          // Ej: "Visa", "MasterCard"
   balance       Float           // Saldo actual
-  interestRate  Float           // Tasa de interés anual (%)
+  interestRate  Float           // Tasa de interés anual regular (%)
   minPayment    Float?          // Pago mínimo mensual
   limit         Float?          // Límite de crédito
+
+  // Oferta promocional (ej: transferencia de balance)
+  hasPromoOffer    Boolean      @default(false)
+  promoTransferFee Float?       // Costo de transferencia (% del balance, ej: 3.5)
+  promoRate        Float?       // APR promocional (ej: 0 para 0%)
+  promoMonths      Int?         // Duración del período promocional en meses
 
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
