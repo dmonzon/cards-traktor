@@ -1,34 +1,28 @@
 import { NextRequest } from "next/server"
-import { getServerSession } from "next-auth/next"
-import { authOptions } from "@/lib/authOptions"
+import { requireSession } from "@/lib/api"
+import { buildCardData } from "@/lib/cards"
 import { prisma } from "@/lib/db"
 
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const session = await getServerSession(authOptions)
-  if (!session) return Response.json({ error: "No autorizado" }, { status: 401 })
+  const { session, error } = await requireSession()
+  if (error) return error
 
   const { id } = await params
   const body = await req.json()
-  const { name, balance, interestRate, minPayment, limit, hasPromoOffer, promoTransferFee, promoRate, promoMonths } = body
 
-  const existing = await prisma.creditCard.findFirst({ where: { id, userId: session.user.id } })
-  if (!existing) return Response.json({ error: "Tarjeta no encontrada" }, { status: 404 })
+  if (!body.name?.trim()) {
+    return Response.json({ error: "El nombre es requerido" }, { status: 400 })
+  }
 
   try {
-    const card = await prisma.creditCard.update({
-      where: { id },
-      data: {
-        name: name?.trim(),
-        balance,
-        interestRate,
-        minPayment: minPayment ?? null,
-        limit: limit ?? null,
-        hasPromoOffer: hasPromoOffer ?? false,
-        promoTransferFee: hasPromoOffer ? (promoTransferFee ?? null) : null,
-        promoRate: hasPromoOffer ? (promoRate ?? null) : null,
-        promoMonths: hasPromoOffer ? (promoMonths ?? null) : null,
-      },
+    const result = await prisma.creditCard.updateMany({
+      where: { id, userId: session.user.id },
+      data: buildCardData(body),
     })
+    if (result.count === 0) {
+      return Response.json({ error: "Tarjeta no encontrada" }, { status: 404 })
+    }
+    const card = await prisma.creditCard.findUnique({ where: { id } })
     return Response.json(card)
   } catch {
     return Response.json({ error: "Error al actualizar la tarjeta" }, { status: 500 })
@@ -36,13 +30,16 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 }
 
 export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const session = await getServerSession(authOptions)
-  if (!session) return Response.json({ error: "No autorizado" }, { status: 401 })
+  const { session, error } = await requireSession()
+  if (error) return error
 
   const { id } = await params
-  const existing = await prisma.creditCard.findFirst({ where: { id, userId: session.user.id } })
-  if (!existing) return Response.json({ error: "Tarjeta no encontrada" }, { status: 404 })
+  const result = await prisma.creditCard.deleteMany({
+    where: { id, userId: session.user.id },
+  })
 
-  await prisma.creditCard.delete({ where: { id } })
+  if (result.count === 0) {
+    return Response.json({ error: "Tarjeta no encontrada" }, { status: 404 })
+  }
   return new Response(null, { status: 204 })
 }

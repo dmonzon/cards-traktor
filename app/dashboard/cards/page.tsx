@@ -39,8 +39,8 @@ export default function CardsPage() {
     })
     const json = await res.json()
     if (!res.ok) throw new Error(json.error)
+    setCards(prev => [...prev, json])
     setShowForm(false)
-    await loadCards()
   }
 
   async function handleUpdate(id: string, data: ReturnType<typeof formDataToPayload>) {
@@ -51,15 +51,15 @@ export default function CardsPage() {
     })
     const json = await res.json()
     if (!res.ok) throw new Error(json.error)
+    setCards(prev => prev.map(c => c.id === id ? json : c))
     setEditingCard(null)
-    await loadCards()
   }
 
   async function handleDelete(id: string) {
     setDeletingId(id)
-    await fetch(`/api/cards/${id}`, { method: "DELETE" })
+    const res = await fetch(`/api/cards/${id}`, { method: "DELETE" })
     setDeletingId(null)
-    await loadCards()
+    if (res.ok) setCards(prev => prev.filter(c => c.id !== id))
   }
 
   const totalDebt = cards.reduce((sum, c) => sum + c.balance, 0)
@@ -86,7 +86,6 @@ export default function CardsPage() {
         )}
       </div>
 
-      {/* Formulario de nueva tarjeta */}
       {showForm && (
         <div className="bg-white rounded-xl shadow p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Nueva tarjeta</h3>
@@ -98,7 +97,6 @@ export default function CardsPage() {
         </div>
       )}
 
-      {/* Lista de tarjetas */}
       {loading ? (
         <div className="text-center py-12 text-gray-400">Cargando...</div>
       ) : cards.length === 0 && !showForm ? (

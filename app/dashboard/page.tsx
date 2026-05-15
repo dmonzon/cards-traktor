@@ -9,8 +9,14 @@ export default async function DashboardPage() {
   if (!session) redirect("/auth/login")
 
   const [cards, plans] = await Promise.all([
-    prisma.creditCard.findMany({ where: { userId: session.user.id } }),
-    prisma.paymentPlan.findMany({ where: { userId: session.user.id } }),
+    prisma.creditCard.findMany({
+      where: { userId: session.user.id },
+      select: { balance: true },
+    }),
+    prisma.paymentPlan.findMany({
+      where: { userId: session.user.id },
+      select: { savingsVsMinPayment: true },
+    }),
   ])
 
   const totalDebt = cards.reduce((sum, c) => sum + c.balance, 0)

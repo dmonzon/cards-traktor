@@ -53,13 +53,11 @@ export default function CardForm({ initial, onSubmit, onCancel, submitLabel }: P
     if (!form.interestRate || isNaN(Number(form.interestRate))) {
       setError("Ingresa una tasa de interés válida"); return
     }
-    if (form.hasPromoOffer) {
-      if (!form.promoMonths || Number(form.promoMonths) < 1) {
-        setError("Ingresa el número de meses de la oferta"); return
-      }
-      if (form.promoRate === "" || isNaN(Number(form.promoRate))) {
-        setError("Ingresa el APR de la oferta"); return
-      }
+    if (form.hasPromoOffer && (!form.promoMonths || Number(form.promoMonths) < 1)) {
+      setError("Ingresa el número de meses de la oferta"); return
+    }
+    if (form.hasPromoOffer && (form.promoRate === "" || isNaN(Number(form.promoRate)))) {
+      setError("Ingresa el APR de la oferta"); return
     }
 
     setLoading(true)
@@ -76,7 +74,6 @@ export default function CardForm({ initial, onSubmit, onCancel, submitLabel }: P
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
 
-      {/* Información básica */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="sm:col-span-2">
           <label className="block text-sm font-medium text-gray-700 mb-1">

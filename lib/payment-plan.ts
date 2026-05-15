@@ -1,12 +1,12 @@
 export interface CreditCardInput {
   name: string
   balance: number
-  interestRate: number    // APR regular, anual en %
+  interestRate: number
   minPayment?: number
   hasPromoOffer?: boolean
-  promoTransferFee?: number  // % del balance (ej: 3.5 para 3.5%)
-  promoRate?: number         // APR promocional en % (ej: 0 para 0%)
-  promoMonths?: number       // Meses que dura la oferta
+  promoTransferFee?: number
+  promoRate?: number
+  promoMonths?: number
 }
 
 export interface MonthPayment {
@@ -32,13 +32,14 @@ export interface PaymentPlanResult {
 
 interface CardState extends CreditCardInput {
   remainingBalance: number
-  monthlyRate: number         // Tasa mensual regular
-  promoMonthlyRate: number    // Tasa mensual durante promo
+  monthlyRate: number
+  promoMonthlyRate: number
   remainingPromoMonths: number
 }
 
-function initCards(cards: CreditCardInput[]): { cardsData: CardState[], totalTransferFees: number } {
+function initCards(cards: CreditCardInput[]): { cardsData: CardState[]; totalTransferFees: number; totalDebt: number } {
   let totalTransferFees = 0
+  const totalDebt = cards.reduce((sum, c) => sum + c.balance, 0)
 
   const cardsData: CardState[] = cards.map(card => {
     const transferFee = card.hasPromoOffer && card.promoTransferFee
@@ -46,12 +47,9 @@ function initCards(cards: CreditCardInput[]): { cardsData: CardState[], totalTra
       : 0
     totalTransferFees += transferFee
 
-    // El fee de transferencia se suma al balance
-    const effectiveBalance = card.balance + transferFee
-
     return {
       ...card,
-      remainingBalance: effectiveBalance,
+      remainingBalance: card.balance + transferFee,
       monthlyRate: card.interestRate / 100 / 12,
       promoMonthlyRate: card.hasPromoOffer && card.promoRate !== undefined
         ? card.promoRate / 100 / 12
@@ -60,31 +58,19 @@ function initCards(cards: CreditCardInput[]): { cardsData: CardState[], totalTra
     }
   })
 
-  return { cardsData, totalTransferFees }
+  return { cardsData, totalTransferFees, totalDebt }
 }
 
-function simulateMonth(
-  card: CardState,
-  availablePayment: number
-): { payment: MonthPayment; usedPayment: number } {
+function simulateMonth(card: CardState, availablePayment: number): { payment: MonthPayment; usedPayment: number } {
   if (card.remainingBalance <= 0.01) {
     return {
-      payment: {
-        month: 0,
-        creditCard: card.name,
-        principalPayment: 0,
-        interestPayment: 0,
-        totalPayment: 0,
-        remainingBalance: 0,
-        isPromo: false,
-      },
+      payment: { month: 0, creditCard: card.name, principalPayment: 0, interestPayment: 0, totalPayment: 0, remainingBalance: 0, isPromo: false },
       usedPayment: 0,
     }
   }
 
   const isPromo = card.remainingPromoMonths > 0
-  const monthlyRate = isPromo ? card.promoMonthlyRate : card.monthlyRate
-  const interestPayment = card.remainingBalance * monthlyRate
+  const interestPayment = card.remainingBalance * (isPromo ? card.promoMonthlyRate : card.monthlyRate)
 
   let principalPayment = 0
   if (availablePayment >= interestPayment + card.remainingBalance) {
@@ -98,24 +84,12 @@ function simulateMonth(
   if (isPromo) card.remainingPromoMonths--
 
   return {
-    payment: {
-      month: 0,
-      creditCard: card.name,
-      principalPayment,
-      interestPayment,
-      totalPayment,
-      remainingBalance: card.remainingBalance,
-      isPromo,
-    },
+    payment: { month: 0, creditCard: card.name, principalPayment, interestPayment, totalPayment, remainingBalance: card.remainingBalance, isPromo },
     usedPayment: totalPayment,
   }
 }
 
-function runSimulation(
-  cardsData: CardState[],
-  monthlyPayment: number,
-  strategy: 'avalanche' | 'snowball'
-): { payments: MonthPayment[]; totalInterest: number; months: number } {
+function runSimulation(cardsData: CardState[], monthlyPayment: number, strategy: 'avalanche' | 'snowball'): { payments: MonthPayment[]; totalInterest: number; months: number } {
   const payments: MonthPayment[] = []
   let totalInterest = 0
   let month = 0
@@ -126,7 +100,6 @@ function runSimulation(
 
     for (const card of cardsData) {
       if (card.remainingBalance <= 0.01) continue
-
       const { payment, usedPayment } = simulateMonth(card, remainingPayment)
       remainingPayment = Math.max(0, remainingPayment - usedPayment)
       totalInterest += payment.interestPayment
@@ -139,59 +112,36 @@ function runSimulation(
   return { payments, totalInterest, months: month }
 }
 
-export function calculateAvalanchePlan(
+function calculatePlan(
   cards: CreditCardInput[],
-  monthlyPayment: number
+  monthlyPayment: number,
+  strategy: 'avalanche' | 'snowball'
 ): PaymentPlanResult {
-  const { cardsData, totalTransferFees } = initCards(cards)
+  const { cardsData, totalTransferFees, totalDebt } = initCards(cards)
 
-  // Ordenar: primero las que tienen tasa promo activa (para aprovecharlas),
-  // luego por tasa regular descendente
-  cardsData.sort((a, b) => {
-    const rateA = a.remainingPromoMonths > 0 ? a.promoMonthlyRate : a.monthlyRate
-    const rateB = b.remainingPromoMonths > 0 ? b.promoMonthlyRate : b.monthlyRate
-    return rateB - rateA
-  })
+  if (strategy === 'avalanche') {
+    // Pay highest effective rate first (promo rate during offer, then regular)
+    cardsData.sort((a, b) => {
+      const rateA = a.remainingPromoMonths > 0 ? a.promoMonthlyRate : a.monthlyRate
+      const rateB = b.remainingPromoMonths > 0 ? b.promoMonthlyRate : b.monthlyRate
+      return rateB - rateA
+    })
+  } else {
+    // Pay lowest balance first
+    cardsData.sort((a, b) => a.remainingBalance - b.remainingBalance)
+  }
 
-  const { payments, totalInterest, months } = runSimulation(cardsData, monthlyPayment, 'avalanche')
-  const totalDebt = cards.reduce((sum, c) => sum + c.balance, 0)
+  const { payments, totalInterest, months } = runSimulation(cardsData, monthlyPayment, strategy)
   const minPaymentTotal = cards.reduce((sum, c) => sum + (c.minPayment || 25), 0) * months
   const savingsVsMinPayment = Math.max(0, minPaymentTotal - (monthlyPayment * months + totalInterest))
 
-  return {
-    strategy: 'avalanche',
-    totalDebt,
-    totalTransferFees,
-    totalInterest,
-    monthlyPayment,
-    estimatedMonths: months,
-    savingsVsMinPayment,
-    payments,
-  }
+  return { strategy, totalDebt, totalTransferFees, totalInterest, monthlyPayment, estimatedMonths: months, savingsVsMinPayment, payments }
 }
 
-export function calculateSnowballPlan(
-  cards: CreditCardInput[],
-  monthlyPayment: number
-): PaymentPlanResult {
-  const { cardsData, totalTransferFees } = initCards(cards)
+export function calculateAvalanchePlan(cards: CreditCardInput[], monthlyPayment: number): PaymentPlanResult {
+  return calculatePlan(cards, monthlyPayment, 'avalanche')
+}
 
-  // Ordenar por saldo ascendente
-  cardsData.sort((a, b) => a.remainingBalance - b.remainingBalance)
-
-  const { payments, totalInterest, months } = runSimulation(cardsData, monthlyPayment, 'snowball')
-  const totalDebt = cards.reduce((sum, c) => sum + c.balance, 0)
-  const minPaymentTotal = cards.reduce((sum, c) => sum + (c.minPayment || 25), 0) * months
-  const savingsVsMinPayment = Math.max(0, minPaymentTotal - (monthlyPayment * months + totalInterest))
-
-  return {
-    strategy: 'snowball',
-    totalDebt,
-    totalTransferFees,
-    totalInterest,
-    monthlyPayment,
-    estimatedMonths: months,
-    savingsVsMinPayment,
-    payments,
-  }
+export function calculateSnowballPlan(cards: CreditCardInput[], monthlyPayment: number): PaymentPlanResult {
+  return calculatePlan(cards, monthlyPayment, 'snowball')
 }
