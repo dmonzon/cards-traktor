@@ -75,13 +75,13 @@ export default async function DashboardPage() {
         </Link>
 
         <Link
-          href="/dashboard/plans/new"
+          href={plans.length === 0 ? "/dashboard/plans/new" : "/dashboard/plans"}
           className="bg-white rounded-xl shadow p-6 hover:shadow-md transition-shadow group"
         >
           <div className="flex items-center justify-between">
             <div>
               <h3 className="font-semibold text-gray-900 group-hover:text-green-600 transition-colors">
-                Generar plan de pago
+                {plans.length === 0 ? "Generar plan de pago" : "Mis planes"}
               </h3>
               <p className="text-sm text-gray-500 mt-1">
                 {plans.length === 0
