@@ -2,11 +2,9 @@
 
 import { useState } from "react"
 import { signIn } from "next-auth/react"
-import { useRouter } from "next/navigation"
 import Link from "next/link"
 
 export default function RegisterPage() {
-  const router = useRouter()
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -44,11 +42,11 @@ export default function RegisterPage() {
     setLoading(false)
 
     if (result?.error) {
-      router.push("/auth/login")
+      window.location.href = "/auth/login"
       return
     }
 
-    router.push("/dashboard")
+    window.location.href = "/dashboard"
   }
 
   return (
